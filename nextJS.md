@@ -2998,7 +2998,7 @@ export async function GET(request: NextRequest) {
 
 ## -----------------------uploaded mdx files to github---------------------------
 
-## 1- make a repo on github
+## 1- make a repo on github ==> always without without readme file
 
 ## 2- git bash - navigate to folder
 
@@ -3015,6 +3015,8 @@ ex: git push https://github.com/the-dev-syntax/next-dave-final-project.git main
 ## 7- if it didn't work , git pull
 
 ## 8- if it didn't work , git pull https://github.com/the-dev-syntax/next-dave-final-project.git main --allow-unrelated-histories
+
+## 8- if it didn't work , git pull https://github.com/the-dev-syntax/myBlogLesson.git main --allow-unrelated-histories
 
 ## 9- git push <remote url> <main or branch name>
 
