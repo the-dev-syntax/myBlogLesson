@@ -38,13 +38,13 @@ export async function getPostByName(fileName: string): Promise<BlogPost | undefi
 
   if (rawMDX === "404: Not Found") return undefined;
 
-  /** @type {import('rehype-pretty-code').Options} */
-  const options = {
-    theme: {
-      dark: "github-dark-dimmed",
-      // light: "github-light",
-    },
-  };
+  // /** @type {import('rehype-pretty-code').Options} */
+  // const options = {
+  //   theme: {
+  //     dark: "github-dark-dimmed",
+  //     // light: "github-light",
+  //   },
+  // };
 
   // now process the res data
   // prettier-ignore
@@ -62,7 +62,7 @@ export async function getPostByName(fileName: string): Promise<BlogPost | undefi
       parseFrontmatter: true,
       mdxOptions: {
         rehypePlugins: [
-          [rehypePrettyCode, options],
+          [rehypePrettyCode],
 
           rehypeSlug,
           [rehypeAutolinkHeadings, { behavior: "wrap" }],

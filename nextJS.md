@@ -2990,6 +2990,38 @@ export async function GET(request: NextRequest) {
 // make fn above GET , make build again , start again , thunder good  browser good.
 ```
 
+change revalidate value in all pages.tsx from bard very good
+
+```js
+// Revalidate a single page when the page is mounted
+import { useRouter } from "next/router";
+
+export async function getServerSideProps() {
+  const router = useRouter();
+
+  // Revalidate the page before returning the props
+  await router.revalidate("/posts/[postId]");
+
+  return {
+    props: {},
+  };
+}
+
+// Revalidate a group of pages when a button is clicked
+import { useRouter } from "next/router";
+
+export default function MyComponent() {
+  const router = useRouter();
+
+  async function handleClick() {
+    // Revalidate a group of pages
+    await router.revalidate("/posts");
+  }
+
+  return <button onClick={handleClick}>Revalidate pages</button>;
+}
+```
+
 **===================== ================================== ----------------**
 **===================== ================================== ----------------**
 --------------------=== = [lesson-12] : <[final-project]>= ===-------------
@@ -3190,4 +3222,806 @@ module.exports = {
 "postbuild": "next-sitemap"
 },
 
-change revalidate value in all pages.tsx
+## in varcel :
+
+it connected to deca7200 (my working account in varcel) with the-dev-syntax of github
+
+in dashboard
+settings
+left : Enviroment Variables
+key: SITE_URL https://my-blog-lesson.vercel.app/ ==> given by varcel
+save
+
+from navbar in deployments
+the three dots beside the project name far right
+select: Redeploy
+yes check use existing build cache ===> as we did not change the code
+
+## the total blogPost project
+
+```tsx
+//-------------------------------
+// .env.local
+//-------------------------------
+MY_SECRET_TOKEN=decalearnnextjs   // wrote this one
+GITHUB_TOKEN=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 // classic from github
+SITE_URL=your.com
+
+//-------------------------------
+// .eslintrc.json
+//-------------------------------
+{
+  "extends": "next/core-web-vitals",
+  "rules": {    // this part added to prevent error with I'm ==> '
+    "react/no-unescaped-entities": "off"
+  }
+}
+
+//-------------------------------
+// next-sitemap.config.js
+//-------------------------------
+
+/** @type {import('next-sitemap').IConfig} */
+module.exports = {
+  siteUrl: process.env.SITE_URL || "http://localhost:3000", // here SITE_URL defined in .env or env vari at deployment host
+  generateRobotsTxt: true,
+  generateIndexSitemap: false,
+};
+
+//-------------------------------
+// package.json
+//-------------------------------
+{
+  "name": "blog-website",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postbuild": "next-sitemap"
+  },
+  "dependencies": {
+    "@types/node": "20.6.5",
+    "@types/react": "18.2.22",
+    "@types/react-dom": "18.2.7",
+    "autoprefixer": "10.4.16",
+    "eslint": "8.50.0",
+    "eslint-config-next": "13.5.2",
+    "highlight.js": "^11.8.0", // did not use this one
+    "next": "^13.4.0",
+    "next-mdx-remote": "^4.4.1",
+    "next-sitemap": "^4.2.3",
+    "postcss": "8.4.30",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-icons": "^4.11.0",
+    "rehype-autolink-headings": "^7.0.0",
+    "rehype-highlight": "^7.0.0", // did not use this one
+    "rehype-pretty-code": "^0.10.1",
+    "rehype-slug": "^6.0.0",
+    "sharp": "^0.32.6",
+    "shiki": "^0.14.4",
+    "tailwindcss": "3.3.3",
+    "typescript": "5.2.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/aspect-ratio": "^0.4.2",
+    "@tailwindcss/typography": "^0.5.10"
+  }
+}
+
+//-------------------------------
+//tailwind.config.js
+//-------------------------------
+
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  content: [
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {
+      backgroundImage: {
+        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+        "gradient-conic":
+          "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+      },
+    },
+  },
+  plugins: [
+    require("@tailwindcss/typography"),
+    require("@tailwindcss/aspect-ratio"),
+  ],
+};
+export default config;
+
+//-------------------------------
+//types.d.ts
+//-------------------------------
+
+type Meta = {
+  id: string;
+  title: string;
+  date: string;
+  tags: string[];
+};
+
+type BlogPost = {
+  meta: Meta;
+  content: ReactElement<any, string | JSXElementConstructor<any>>;
+};
+
+//-------------------------------
+// app/layout.tsx
+//-------------------------------
+
+import "./globals.css";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import Navbar from "./components/Navbar";
+
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "Deca's Blog",
+  description: "Created by Deca khalil",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body className="dark:bg-slate-800">
+        <Navbar />
+        <main className="px-4 md:px-6 prose prose-xl prose-slate dark:prose-invert mx-auto">
+          {children}
+        </main>
+      </body>
+    </html>
+  );
+}
+
+//-------------------------------
+// app/page.tsx
+//-------------------------------
+
+import Posts from "./components/Posts";
+import MyProfilePic from "./components/MyProfilePic";
+
+export const revalidate = 86400; // at production: 86400   w is sec per day
+// it take two refreshes to get the update one to trigger reval then 10s , one to get it
+
+export default function Home() {
+  return (
+    <div className="mx-auto">
+      <MyProfilePic />
+      <p className="mt-12 mb-12 text-3xl text-center dark:text-white">
+        Hello and Welcome 👋&nbsp;
+        <span className="whitespace-nowrap">
+          I'm <span className="font-bold">Deca</span>
+        </span>
+      </p>
+
+      <Posts />
+    </div>
+  );
+}
+
+//-------------------------------
+// app/comonents/Navbar.tsx
+//-------------------------------
+import Link from "next/link";
+import { FaYoutube, FaTwitter, FaGithub, FaLaptop } from "react-icons/fa";
+
+export default function Navbar() {
+  return (
+    <nav className="bg-slate-600 p-4 sticky top-0 drop-shadow-xl z-10">
+      <div className="md:px-6 prose prose-xl mx-auto flex justify-between flex-col sm:flex-row">
+        <h1 className="text-3xl font-bold text-white grid place-content-center mb-2 md:mb-0">
+          <Link
+            href="/"
+            className="text-white/90 no-underline hover:text-white"
+          >
+            Deca Khalil
+          </Link>
+        </h1>
+        <div className="flex flex-row justify-center sm:justify-evenly align-middle gap-4 text-white text-3xl lg:text-4xl">
+          <Link
+            className="text-white/90 hover:text-white"
+            href="https://www.youtube.com/"
+            target="_blank"
+          >
+            <FaYoutube />
+          </Link>
+          <Link
+            className="text-white/90 hover:text-white"
+            href="https://www.twitter.com"
+            target="_blank"
+          >
+            <FaTwitter />
+          </Link>
+          <Link
+            className="text-white/90 hover:text-white"
+            href="https://www.udemy.com/"
+            target="_blank"
+          >
+            <FaLaptop />
+          </Link>
+          <Link
+            className="text-white/90 hover:text-white"
+            href="https://github.com/the-dev-syntax"
+            target="_blank"
+          >
+            <FaGithub />
+          </Link>
+        </div>
+      </div>
+    </nav>
+  );
+}
+// href="https://www.youtube.com/@decaKhalil"
+// href="https://www.twitter.com/@decaKhalil"
+// href="https://www.decaKhalil.com/@decaKhalil"
+
+//-------------------------------
+// app/comonents/Posts.tsx
+//-------------------------------
+import { getPostsMeta } from "@/lib/posts";
+import ListItems from "./ListItems";
+
+export default async function Posts() {
+  const posts = await getPostsMeta();
+
+  if (!posts) return <p className="mt-10 text-center">Sorry, No posts Found</p>;
+
+  console.log(posts.map((post) => post.title));
+
+  return (
+    <section className="mt-6 mx-auto max-w-2xl">
+      <h2 className="text-4xl font-bold dark:text-white/90 ">Blog</h2>
+      <ul className="w-full list-none p-0">
+        {posts.map((post) => (
+          <ListItems key={post.id} post={post} />
+        ))}
+      </ul>
+    </section>
+  );
+}
+//-------------------------------
+// app/comonents/ListItems.tsx
+//-------------------------------
+
+import getFormattedDate from "@/lib/getFormattedDate";
+import Link from "next/link";
+
+type Props = {
+  post: Meta;
+};
+
+export default function ListItems({ post }: Props) {
+  const { title, id, date } = post;
+  const formattedDate = getFormattedDate(date);
+
+  return (
+    <li className="mt-4 text-2xl dark:text:white/90">
+      <Link
+        className="underline text-teal-300 hover:text-white/90 dark:hover:text-white"
+        href={`/posts/${id}`}
+      >
+        {title}
+      </Link>
+      <br />
+      <p className="text-sm mt-1 text-teal-600">{formattedDate}</p>
+    </li>
+  );
+}
+//-------------------------------
+// app/comonents/myProfilePic.tsx
+//-------------------------------
+
+import Image from "next/image";
+
+export default function MyProfilePic() {
+  return (
+    <section className="w-full mx-auto">
+      <Image
+        className="border-4 border-black dark:border-slate-500 drop-shadow-xl shadow-black rounded-full mx-auto mt-8"
+        src="/images/deca-khalil-2.jpg"
+        alt="Deca Khalil"
+        width={200}
+        height={200}
+        priority={true}
+      />
+    </section>
+  );
+}
+
+//-------------------------------
+// app/comonents/CustomImage.tsx
+//-------------------------------
+
+import Image from "next/image";
+
+type Props = {
+  src: string;
+  alt: string;
+  priority?: string;
+};
+
+export default function CustomImage({ src, alt, priority }: Props) {
+  const p = priority ? true : false;
+
+  return (
+    <div className="w-full h-full">
+      <Image
+        className="rounded-lg mx-auto"
+        src={src}
+        alt={alt}
+        width={650}
+        height={650}
+        priority={p}
+      />
+    </div>
+  );
+}
+// this will be called from mdx file as
+// <customImage scr="full url from github" alt="any title" priority="true if it is the main one" />
+//*  add in [compilerMDX] ,add in next.config.js
+//? remote image:===>  add configuration to next.config.js , ref to docs .
+
+//-------------------------------
+// app/comonents/Video.tsx
+//-------------------------------
+
+type Props = {
+  id: string;
+};
+
+export default function Video({ id }: Props) {
+  return (
+    <div className="aspect-w-16 aspect-h-9">
+      <iframe
+        src={`https://www.youtube.com/embed/${id}`}
+        title="YouTube video player"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      />
+    </div>
+  );
+}
+// will be called from the mdx file
+// npm i @tailwindcss/aspect-ratio@latest -D     to wrap iframe tag
+// components:{ Video }, add this component to the compilerMDX
+
+
+//-------------------------------
+// app/posts/[postId]/page.tsx
+//-------------------------------
+
+import { getPostsMeta, getPostByName } from "@/lib/posts";
+import { notFound } from "next/navigation";
+import getFormattedDate from "@/lib/getFormattedDate";
+import Link from "next/link";
+
+// this is like cache :"no-cache" , this will make page SSR
+// to catch error during dev ,
+// will come back to add longer duration , to cache ==> SSG pages
+export const revalidate = 86400;
+
+type Props = {
+  params: {
+    postId: string;
+  };
+};
+//* this will cause problem generateStaticParams with validate = 0;
+// so to return an array of already postId values
+export async function generateStaticParams() {
+  const posts = await getPostsMeta();
+
+  if (!posts) return [];
+
+  return posts.map((post) => ({
+    postId: post.id,
+  }));
+}
+
+export async function generateMetadata({ params: { postId } }: Props) {
+  // console.log(postId);
+  const post = await getPostByName(`${postId}.mdx`);
+
+  if (!post) {
+    return {
+      title: "Post Not Found",
+      // add metadata
+    };
+  } else {
+    return {
+      title: post.meta.title,
+    };
+  }
+}
+
+export default async function Post({ params: { postId } }: Props) {
+  // console.log(postId);
+  const post = await getPostByName(`${postId}.mdx`);
+  // console.log(post?.meta, "Post fn");
+
+  // cuz notFound return never , no need for return before it
+  if (!post) notFound();
+
+  const { meta, content } = post;
+
+  const formattedDate = getFormattedDate(meta.date);
+
+  const tags = meta.tags.map((tag, i) => (
+    <Link key={i} href={`/tags/${tag}`}>
+      {tag}
+    </Link>
+  ));
+
+  return (
+    <>
+      <h2 className="text-3xl mt-4 mb-0">{meta.title}</h2>
+      <p className="mt-0 text-sm">{formattedDate}</p>
+      <article>{content}</article>
+      <section>
+        <h3>Related:</h3>
+        <div className="flex flex-row gap-4">{tags}</div>
+      </section>
+      <p className="mb-10">
+        <Link href="/">← Back to home</Link>
+      </p>
+    </>
+  );
+}
+
+
+//-------------------------------
+// app/posts/[postId]/not-found.tsx
+//-------------------------------
+
+import Link from "next/link";
+
+export default function NotFound() {
+  return (
+    <div className="text-center">
+      <p className="mt-10">Sorry, the requested post does not exist.</p>
+      <Link href="/">Back to Home</Link>
+    </div>
+  );
+}
+
+//-------------------------------
+// app/posts/[postId]/error.tsx
+//-------------------------------
+
+"use client"; // Error components must be Client components
+
+import { useEffect } from "react";
+import Link from "next/link";
+
+//prettier-ignore
+export default function Error({error , reset}: {error: Error , reset: () => void}) {
+  useEffect(() => {
+    // Log the error to an error reporting service
+    console.error(error);
+  }, [error]);
+
+  return (
+    <main className="bg-slate-200 mx-auto max-w-lg py-1 px-4 min-h-screen">
+      <h2 className="my-4 text-2xl font-bold">Something went wrong!</h2>
+      <button
+        className="mb-4 p-4 bg-red-500 text-white rounded-xl"
+        onClick={
+          // Attempt to recover by trying to re-render the segment
+          () => reset()
+        }
+      >
+        Try again
+      </button>
+      <p className="text-xl">
+        Or go back to{" "}
+        <Link href="/" className="underline">
+          Home 🏠
+        </Link>
+      </p>
+    </main>
+  );
+}
+
+//-------------------------------
+// app/posts/[tag]/page.tsx
+//-------------------------------
+
+import { getPostsMeta } from "@/lib/posts";
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import ListItems from "@/app/components/ListItems";
+
+export const revalidate = 86400;
+
+type Props = {
+  params: {
+    tag: string;
+  };
+};
+
+export async function generateStaticParams() {
+  const postsMeta = await getPostsMeta();
+
+  if (!postsMeta) return []; // metadata should return []
+
+  const tags = new Set(postsMeta.map((post) => post.tags).flat());
+  // The postsMeta array is an array of objects, each of which contains information about a post, such as the post's title, ID, and tags.
+  // The map() method iterates over the postsMeta array and returns a new array containing the tags for each post.
+  // The flat() method flattens the new array, so that it only contains the tags themselves.
+  // The Set() object constructor creates a new Set object containing the elements that are passed to it.
+  // const postsMeta = [
+  //   { title: "Post 1", id: 1, tags: ["tag1", "tag2"] },
+  //   { title: "Post 2", id: 2, tags: ["tag3", "tag4"] },
+  //   { title: "Post 3", id: 3, tags: ["tag1", "tag5"] },
+  // ];
+  // const tags = new Set(postsMeta.map((post) => post.tags).flat());
+  // Output:  Set { 'tag1', 'tag2', 'tag3', 'tag4', 'tag5' }
+
+  return Array.from(tags).map((tag) => ({ tag })); // [{tag: 'new'}, {tag:'next.js'}]
+  // example return Array.from(tags).map((tagKey) => ({ tagKey })); any object is a key-value pair
+  // with map:you provide keys, the array provide the values
+  // [{tagKey : tagValue}, {tagKey : tagValue}, {tagKey : tagValue}]
+}
+
+export async function generateMetadata({ params: { tag } }: Props) {
+  const postsMeta: Meta[] | undefined = await getPostsMeta();
+
+  if (!postsMeta)
+    return {
+      title: `tag not provided`,
+    };
+
+  return {
+    title: `Posts about ${tag}`,
+  };
+}
+
+export default async function pagesMetaByTag({ params: { tag } }: Props) {
+  const postsMeta: Meta[] | undefined = await getPostsMeta();
+
+  if (!postsMeta)
+    return <p className="mt-10 text-center">Sorry, no posts available.</p>;
+
+  const tagPosts = postsMeta.filter((obj) => obj.tags.includes(tag));
+
+  if (!tagPosts.length)
+    return (
+      <div className="text-center">
+        <p className="mt-10">Sorry, no posts for {tag}.</p>
+        <Link href="/">Back to Home</Link>
+      </div>
+    );
+
+  return (
+    <>
+      <h2 className="text-3xl mt-4 mb-0">Results for: #{tag}</h2>
+      <section className="mt-6 mx-auto max-w-2xl">
+        <ul className="w-full list-none p-0">
+          {tagPosts.map((post) => (
+            <ListItems key={post.id} post={post} />
+          ))}
+        </ul>
+      </section>
+    </>
+  );
+}
+
+//-------------------------------
+// app/api/revalidate/route.ts
+//-------------------------------
+
+
+//  my code :
+/*
+import { NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
+
+export async function GET(request: NextRequest) {
+  const path = request.nextUrl.searchParams.get("path");
+
+  if (!path) {
+    return Response.json({ message: "Missing path param" }, { status: 400 });
+  }
+
+  if (
+    request.nextUrl.searchParams.get("secret") !== process.env.MY_SECRET_TOKEN
+  ) {
+    return Response.json({ message: "Invalid Token" }, { status: 401 });
+  }
+
+  revalidatePath(path);
+
+  return Response.json({ revalidated: true, now: Date.now() });
+}
+*/
+
+// to validate th code is working
+// npm run build
+// npm start
+// move new.md to blogPost file
+// thunderClient add the url to thunder above
+// make it post request , you will see path an secret value already added to query
+// worked in thunder but the browser did not validate and did not show the new blog
+// make fn above GET , make build again , start again , thunder good  browser good.
+
+// dave new code :
+
+import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
+
+export async function GET(request: NextRequest) {
+  const secret = request.nextUrl.searchParams.get("secret");
+
+  if (secret !== process.env.MY_SECRET_TOKEN) {
+    return new NextResponse(JSON.stringify({ message: "Invalid Token" }), {
+      status: 401,
+      statusText: "Unauthorized",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  }
+
+  const path = request.nextUrl.searchParams.get("path") || "/";
+
+  revalidatePath(path);
+
+  return NextResponse.json({ revalidated: true });
+}
+
+//-------------------------------
+// app/lib/posts.ts
+//-------------------------------
+
+import { compileMDX } from "next-mdx-remote/rsc";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import rehypeHighlight from "rehype-highlight";
+import rehypePrettyCode from "rehype-pretty-code";
+import rehypeSlug from "rehype-slug";
+import Video from "@/app/components/video";
+import CustomImage from "@/app/components/customImage";
+
+type FileTree = {
+  tree: [
+    {
+      path: string;
+    }
+  ];
+};
+// this fn to get all content and metadata from each file
+// gets file raw data convert it to text , use compileMDX => return obj of {frontmatter , content}
+// compileMDX parameter is an object contain {source : fileFetchedTexted , options}
+// options:
+// compileMDX<{ type of frontmatter }>
+
+// prettier-ignore
+export async function getPostByName(fileName: string): Promise<BlogPost | undefined> {
+  const res = await fetch(
+    `https://raw.githubusercontent.com/the-dev-syntax/next-dave-final-project/main/${fileName}`,
+    {
+      headers: {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }
+  );
+
+  if (!res.ok) return undefined;
+
+  const rawMDX = await res.text();
+
+  if (rawMDX === "404: Not Found") return undefined;
+
+  /** @type {import('rehype-pretty-code').Options} */
+  const options = {
+    theme: {
+      dark: "github-dark-dimmed",
+      // light: "github-light",
+    },
+  };
+
+  // now process the res data
+  // prettier-ignore
+  const { content, frontmatter } = await compileMDX<{
+    title: string;
+    date: string;
+    tags: string[];
+  }>({
+    source: rawMDX,
+    components: {
+      Video,
+      CustomImage,
+    },
+    options: {
+      parseFrontmatter: true,
+      mdxOptions: {
+        rehypePlugins: [
+          [rehypePrettyCode, options],
+
+          rehypeSlug,
+          [rehypeAutolinkHeadings, { behavior: "wrap" }],
+        ],
+      },
+    },
+  });
+
+  const id = fileName.replace(/\.mdx$/, "");
+
+  const blogPostObj: BlogPost = {
+    meta: {
+      id,
+      title: frontmatter.title,
+      date: frontmatter.date,
+      tags: frontmatter.tags,
+    },
+    content,
+  };
+
+  return blogPostObj;
+}
+// this fn contact api to get tree then filter each mdx file , pass it to another fn
+// to extract metadata from it and put them in an array to display it
+
+export async function getPostsMeta(): Promise<Meta[] | undefined> {
+  const res = await fetch(
+    "https://api.github.com/repos/the-dev-syntax/next-dave-final-project/git/trees/main?recursive=1",
+    {
+      headers: {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }
+  );
+
+  if (!res.ok) return undefined;
+
+  const repoFileTree: FileTree = await res.json();
+
+  // console.log(repoFileTree);
+  // prettier-ignore
+  const filesArray = repoFileTree.tree.map((obj) => obj.path).filter((path) => path.endsWith(".mdx"));
+
+  let posts: Meta[] = [];
+
+  for (const file of filesArray) {
+    const post = await getPostByName(file);
+    if (post) {
+      const { meta } = post;
+      posts.push(meta);
+    }
+  }
+  return posts.sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+//-------------------------------
+// app/lib/getFormattedDate.ts
+//-------------------------------
+
+export default function getFormattedDate(dateString: string): string {
+  return new Intl.DateTimeFormat("en-GB", { dateStyle: "long" }).format(
+    new Date(dateString)
+  );
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat
+
+
+
+
+```
