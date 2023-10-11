@@ -1,4 +1,5 @@
-/* my code :
+//  my code :
+/*
 import { NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
 
@@ -20,6 +21,7 @@ export async function GET(request: NextRequest) {
   return Response.json({ revalidated: true, now: Date.now() });
 }
 */
+
 // to validate th code is working
 // npm run build
 // npm start

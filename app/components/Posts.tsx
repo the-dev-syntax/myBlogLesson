@@ -6,6 +6,8 @@ export default async function Posts() {
 
   if (!posts) return <p className="mt-10 text-center">Sorry, No posts Found</p>;
 
+  console.log(posts.map((post) => post.title));
+
   return (
     <section className="mt-6 mx-auto max-w-2xl">
       <h2 className="text-4xl font-bold dark:text-white/90 ">Blog</h2>
